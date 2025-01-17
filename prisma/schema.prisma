@@ -1,0 +1,193 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model VerificationOtp {
+  id        String           @id @default(uuid())
+  type      EVerificationOtp
+  otp       Int
+  createdAt DateTime         @default(now())
+  ownById   String
+  ownBy     User             @relation(fields: [ownById], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id              String            @id @unique @default(uuid())
+  name            String
+  email           String            @unique
+  password        String?
+  photoUrl        String?           @default("https://i.ibb.co.com/MPbD6mc/User-icon-2-svg.png")
+  loginProvider   ELoginProvider    @default(normalEmail)
+  role            EUserRole         @default(USER)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  isBlocked       Boolean           @default(false)
+  isVerified      Boolean           @default(false)
+  gId             String?           @unique
+  blogs           Blog[]
+  VerificationOtp VerificationOtp[]
+  wishlist        Wishlist[]
+  bookMarks       BookMark[]
+}
+
+model Blog {
+  id          String      @id @unique @default(uuid())
+  title       String
+  description String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  authorId    String
+  content     String
+  thumbnail   String
+  status      EBlogStatus @default(pending)
+  author      User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Wishlist {
+  id        String   @id @unique @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BookCategory {
+  id        String   @id @unique @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  books     Book[]
+}
+
+model Author {
+  id        String   @id @unique @default(uuid())
+  name      String   @unique
+  photoUrl  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  books     Book[]
+}
+
+model Publisher {
+  id        String   @id @unique @default(uuid())
+  name      String   @unique
+  photoUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  books     Book[]
+}
+model BookMark {
+  id        String   @id @unique @default(uuid()) 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  bookId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+}
+
+model Book {
+  id          String       @id @unique @default(uuid())
+  name        String       @unique
+  banglaName  String       @default("")
+  photo       String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  categoryId  String
+  authorId    String
+  publisherId String
+  description String
+  docLink     String?
+  totalRead   Int          @default(0)
+  totalShare  Int          @default(0) 
+  keywords    String
+  pdfLink     String?
+  pdfViewLink String?
+  isActive    Boolean      @default(true)
+  isFeatured  Boolean      @default(false)
+  isWishlist  Boolean      @default(false)
+  author      Author       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category    BookCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  publisher   Publisher    @relation(fields: [publisherId], references: [id], onDelete: Cascade)
+  bookPages   BookPage[]
+  chapters    Chapter[]
+  bookmarks   BookMark[]
+  // add index on name 
+  @@index([name])
+}
+
+model Chapter {
+  id          String       @id @unique @default(uuid())
+  title       String
+  bookId      String
+  description String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  chapterNo   Int
+  bookPages   BookPage[]
+  book        Book         @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  subChapters SubChapter[]
+}
+
+model SubChapter {
+  id           String     @id @unique @default(uuid())
+  title        String
+  chapterId    String
+    description String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  subChapterNo Int
+  bookPages    BookPage[]
+  chapter      Chapter    @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+}
+
+model BookPage {
+  id           String      @id @unique @default(uuid())
+  page         Int
+  content      String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  bookId       String
+  chapterId    String?
+  subChapterId String?
+  book         Book        @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chapter      Chapter?    @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  subChapter   SubChapter? @relation(fields: [subChapterId], references: [id], onDelete: Cascade)
+}
+
+model NewsLetter {
+  id        String   @id @unique @default(uuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum EUserRole {
+  SUPER_ADMIN
+  ADMIN
+  USER
+}
+
+enum ELoginProvider {
+  google
+  normalEmail
+}
+
+enum EVerificationOtp {
+  createUser
+  forgotPassword
+  deleteUser
+  adminLogin
+}
+
+enum EBlogStatus {
+  approved
+  pending
+  denied
+}
