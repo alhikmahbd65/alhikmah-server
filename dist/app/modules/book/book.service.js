@@ -107,6 +107,7 @@ const getAllBook = (filters, paginationOptions, isShort) => __awaiter(void 0, vo
         name: true,
         banglaName: true,
         isFeatured: true,
+        isWishlist: true,
         description: true,
         totalShare: true,
         keywords: true,

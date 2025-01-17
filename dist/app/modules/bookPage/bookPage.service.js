@@ -84,6 +84,7 @@ const getAllBookPage = (filters, paginationOptions) => __awaiter(void 0, void 0,
                 select: {
                     id: true,
                     name: true,
+                    banglaName: true,
                 },
             },
             chapter: {
